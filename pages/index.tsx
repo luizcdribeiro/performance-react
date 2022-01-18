@@ -1,13 +1,20 @@
-import type { NextPage } from 'next'
-import Head from 'next/head'
-import Image from 'next/image'
-import { FormEvent, useState } from 'react'
-import { SearchResults } from '../components/SearchResults'
-import styles from '../styles/Home.module.css'
+import type { NextPage } from 'next';
+import { FormEvent, useCallback, useState } from 'react'
+import { SearchResults } from '../components/SearchResults';
+
+type Results = {
+  totalPrice: number;
+  data: any[];
+}
+
+
 
 const Home: NextPage = () => {
   const [search, setSearch] = useState('');
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState<Results>({
+    totalPrice: 0,
+    data: []
+  });
 
   async function handleSearch(event: FormEvent) {
     event.preventDefault();
@@ -19,8 +26,16 @@ const Home: NextPage = () => {
     const response = await fetch(`http://localhost:3333/products?q=${search}`);
     const data = await response.json();
 
-    setResults(data)
-  }
+    const totalPrice = data.reduce((total, product) => {
+      return total + product.price
+    }, 0)
+
+    setResults({totalPrice, data});
+  };
+
+  const addToWishList = useCallback(async (id: number) => {
+    console.log(id)
+  }, [])
 
   return (
     <div>
@@ -34,7 +49,7 @@ const Home: NextPage = () => {
         </button>
       </form>
 
-      <SearchResults results={results} />
+      <SearchResults onAddToWishList={addToWishList} results={results.data} totalPrice={results.totalPrice} />
     </div>
   )
 }
